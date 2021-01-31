@@ -1,0 +1,18 @@
+{
+  "license": "MIT",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "@discordjs/opus": "^0.4.0",
+    "discord.js": "^12.5.1",
+    "ffmpeg": "^0.0.4",
+    "ffmpeg-static": "^4.2.7",
+    "fluent-ffmpeg": "^2.1.2",
+    "moment": "^2.29.1",
+    "node-dice-js": "^0.1.2",
+    "string-math": "^1.2.2",
+    "ytdl-core": "^4.4.5"
+  }
+}
