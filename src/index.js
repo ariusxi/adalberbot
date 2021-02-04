@@ -15,22 +15,46 @@ const client = new Client();
 const queue = new Map();
 const historicDices = [];
 
+// Initiative list
+let initiativeGroupList = [];
+
 // Ready
 client.once('ready', () => {
     console.log('Ready!');
 });
+
+/**
+ * @param {Number} totalMembers 
+ * @param {Number} totalGroups
+ * @description Método que calcula a quantidade de membros por grupo
+ * @return {Number} 
+ */
+const calculateMembersGroup = (totalMembers, totalGroups) => {
+    // Aqui verificamos se o resto da divisão dá um número quebrado, caso seja ele adiciona mais 1
+    const resultMembersPerGroup = totalMembers / totalGroups;
+    const resultMembersPerGroupInt = parseInt(resultMembersPerGroup);
+
+    if (resultMembersPerGroup > resultMembersPerGroupInt) {
+        return parseInt(totalMembers / totalGroups) + 1;
+    }
+    return parseInt(totalMembers / totalGroups);
+}
 
 const help = (message) => {
     // Inicializando grupo de comandos
     let helpTextMessage = "```";
 
     // Agrupando mensagens dos comandos
-    helpTextMessage = `${helpTextMessage} !play - Para reproduzir um link do Youtube\n`;
-    helpTextMessage = `${helpTextMessage} !skip - Para pular a música atual\n`;
-    helpTextMessage = `${helpTextMessage} !stop - Para parar a música atual\n`;
-    helpTextMessage = `${helpTextMessage} !roll - Para efetuar uma rolagem de dado\n`;
-    helpTextMessage = `${helpTextMessage} !historic-rolls - Para ver o seu histórico de rolagens de dado\n`;
-    helpTextMessage = `${helpTextMessage} !calculate - Para efetuar cálculo de operações`;
+    helpTextMessage = `${helpTextMessage} ${prefix}play - Para reproduzir um link do Youtube\n`;
+    helpTextMessage = `${helpTextMessage} ${prefix}skip - Para pular a música atual\n`;
+    helpTextMessage = `${helpTextMessage} ${prefix}stop - Para parar a música atual\n`;
+    helpTextMessage = `${helpTextMessage} ${prefix}roll - Para efetuar uma rolagem de dado\n`;
+    helpTextMessage = `${helpTextMessage} ${prefix}historic-rolls - Para ver o seu histórico de rolagens de dado\n`;
+    helpTextMessage = `${helpTextMessage} ${prefix}calculate - Para efetuar cálculo de operações\n`;
+    helpTextMessage = `${helpTextMessage} ${prefix}generate-group members quantity - Para criar grupos dividos por nomes\n`;
+    helpTextMessage = `${helpTextMessage} ${prefix}initiative-roll - Para rodar sua iniciativa\n`;
+    helpTextMessage = `${helpTextMessage} ${prefix}initiative-group - Para ver a ordem da iniciativa\n`;
+    helpTextMessage = `${helpTextMessage} ${prefix}initiative-clear - Para limpar a ordem da iniciativa\n`;
 
     message.channel.send(`Aqui está a lista de comandos, use com sabedoria: `);
 
@@ -195,6 +219,78 @@ const calculate = (message) => {
     return message.channel.send(`${currentOperation} = ${resultOperation}`);
 }
 
+const generateGroup = (message) => {
+    // Recuperando os parametros de geração do grupo
+    const args = message.content.split(' ');
+    const members = args[1].split(",");
+    const quantityGroups = parseInt(args[2]);
+    
+    // Calculando quantos membros vão ficar por grupo
+    const membersPerGroup = calculateMembersGroup(members.length, quantityGroups);
+
+    if (members.length < quantityGroups) {
+        return message.channel.send(`Não tenho como criar uma quantidade de grupos com um número de nomes enviados`);
+    }
+
+    let textListGroup = "";
+    for (let currentGroup = 1; currentGroup <= quantityGroups; currentGroup++) {
+        if (members.length > 0) {
+            textListGroup += `**Grupo ${currentGroup}**: `;
+            for (let currentMember = 1; currentMember <= membersPerGroup; currentMember++) {
+                const currentMemberItem = members.shift();
+                textListGroup += currentMemberItem ? ` ${currentMemberItem}` : '';
+            }
+            textListGroup += "\n";
+        }
+    }
+
+    return message.channel.send(textListGroup);
+}
+
+const initiativeRoll = (message) => {
+    const dice = new Dice();
+    const args = message.content.split(' ');
+    const currentDice = args[1];
+
+    console.log(`Executing current dice: ${currentDice}`);
+
+    // Pegando o resultado do dado atual
+    const resultDice = dice.execute(args[1]);
+
+    // Formatando resultado do dado
+    const currentResultDice = resultDice.text.replace(`The result of ${currentDice} is`, '');
+
+    initiativeGroupList.push({
+        dice: currentDice,
+        user: args.length > 2 ? args[2] : message.author.username,
+        result: resultDice.outcomes[0].total,
+        createdAt: moment().format('DD-MM-YYYY HH:mm:ss'),
+    });
+
+    return message.channel.send(`Sua iniciativa é ${currentResultDice}`);
+}
+
+const initiativeGroupOrder = (message) => {
+    console.log(initiativeGroupList);
+
+    // Ordenando as iniciativas em ordem decrescente
+    const initiativeGroupOrderDesc = initiativeGroupList.sort((a, b) => {
+        return a.result > b.result;
+    });
+
+    // Mostrando os resultados de iniciativa
+    initiativeGroupOrderDesc.map((currentInitiative) => {
+        return message.channel.send(`${currentInitiative.user}: ${currentInitiative.result}`);
+    });
+}
+
+const initiativeClear = (message) => {
+    // Limpando grupo de iniciativa
+    initiativeGroupList = [];
+
+    return message.channel.send(`Fila de iniciativa limpa`);
+}
+
 // Commands bot
 const botCommands = (message, serverQueue) => {
     // Help command
@@ -231,6 +327,26 @@ const botCommands = (message, serverQueue) => {
     // Calculate
     if (message.content.startsWith(`${prefix}calculate`)) {
         calculate(message);
+        return;
+    }
+    // Generate group
+    if (message.content.startsWith(`${prefix}generate-group`)) {
+        generateGroup(message);
+        return;
+    }
+    // Roll initiative
+    if (message.content.startsWith(`${prefix}initiative-roll`)) {
+        initiativeRoll(message);
+        return;
+    }
+    // Initiative order
+    if (message.content.startsWith(`${prefix}initiative-group`)) {
+        initiativeGroupOrder(message);
+        return;
+    }
+    // Initiative clear
+    if (message.content.startsWith(`${prefix}initiative-clear`)) {
+        initiativeClear(message);
         return;
     }
     
