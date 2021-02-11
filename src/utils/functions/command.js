@@ -8,7 +8,8 @@ module.exports = (command, message, serverQueue) => {
     const prefix = getPrefix(command);
     // Definindo módulos do bot
     const modules = ((prefixName) => ({
-        'help': moduleCall('help'),
+        'help': moduleCall('help', 'help'),
+        'customhelp': moduleCall('help', 'customHelp'),
         'play': moduleCall('music', 'execute'),
         'skip': moduleCall('music', 'skip'),
         'stop': moduleCall('music', 'stop'),
@@ -19,6 +20,11 @@ module.exports = (command, message, serverQueue) => {
         'initiative-roll': moduleCall('initiative', 'initiativeRoll'),
         'initiative-group': moduleCall('initiative', 'initiativeGroupOrder'),
         'initiative-clear': moduleCall('initiative', 'initiativeClear'),
+        'fomi': moduleCall('random', 'hungry'),
+        'pedemesa': moduleCall('random', 'legtable'),
+        'vouteroubei': moduleCall('random', 'stealphora'),
+        'chadecogumelo': moduleCall('random', 'mushroomtea'),
+        'evelon': moduleCall('random', 'evelon'),
     })[prefixName]);
 
     // Verificando se o prefixo enviado tem uma função existente

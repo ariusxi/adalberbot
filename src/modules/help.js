@@ -2,7 +2,7 @@
 
 const { prefix } = require('./../../config.json');
 
-module.exports = (message) => {
+exports.help = (message) => {
     // Inicializando grupo de comandos
     let helpTextMessage = "```";
 
@@ -19,6 +19,21 @@ module.exports = (message) => {
     helpTextMessage = `${helpTextMessage} ${prefix}initiative-clear - Para limpar a ordem da iniciativa\n`;
 
     message.channel.send(`Aqui está a lista de comandos, use com sabedoria: `);
+
+    return message.channel.send(helpTextMessage + "```");
+}
+
+exports.customHelp = (message) => {
+    // Inicializando grupo de comandos
+    let helpTextMessage = "```";
+
+    // Agrupando mensagens dos comandos
+    helpTextMessage = `${helpTextMessage} ${prefix}fomi\n`;
+    helpTextMessage = `${helpTextMessage} ${prefix}pedemesa\n`;
+    helpTextMessage = `${helpTextMessage} ${prefix}vouteroubei\n`;
+    helpTextMessage = `${helpTextMessage} ${prefix}chadecogumelo\n`;
+
+    message.channel.send(`Pelo visto você realmente gosta de piadas né? Toma aqui as minhas: `);
 
     return message.channel.send(helpTextMessage + "```");
 }

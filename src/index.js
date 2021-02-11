@@ -16,6 +16,18 @@ global.queue = new Map();
 // Ready
 client.once('ready', () => {
     console.log('Ready!');
+
+    // Definindo atividade padrão do bot
+    client.user.setPresence({
+        game: {
+            name: `${prefix}help`,
+            type: 'PLAYING',
+        },
+        status: 'online',
+    });
+
+    // Definindo username do bot
+    client.user.setUsername('Arthambot');
 });
 
 client.on('message', async (message) => {
