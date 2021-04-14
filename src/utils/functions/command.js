@@ -13,6 +13,7 @@ module.exports = (command, message, serverQueue) => {
         'play': moduleCall('music', 'execute'),
         'skip': moduleCall('music', 'skip'),
         'stop': moduleCall('music', 'stop'),
+        'queue': moduleCall('music', 'queue'),
         'roll': moduleCall('dice', 'roll'),
         'historic-rolls': moduleCall('dice', 'historic'),
         'calculate': moduleCall('math'),
@@ -25,6 +26,8 @@ module.exports = (command, message, serverQueue) => {
         'vouteroubei': moduleCall('random', 'stealphora'),
         'chadecogumelo': moduleCall('random', 'mushroomtea'),
         'evelon': moduleCall('random', 'evelon'),
+        'desnecessauro': moduleCall('random', 'unnecessary'),
+        'bonk': moduleCall('random', 'bonk'),
     })[prefixName]);
 
     // Verificando se o prefixo enviado tem uma função existente

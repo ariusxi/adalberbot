@@ -13,8 +13,26 @@ exports.stealphora = (message) => message.channel.send(`Enquanto você digitava 
 });
 
 exports.mushroomtea = (message) => message.channel.send(`Tyborn passa-te a bufa, aceitas?`, {
-    files: ['https://i.imgur.com/My5aoK9.jpg']
+    files: ['https://i.imgur.com/My5aoK9.jpg'],
 });
+
+exports.unnecessary = (message) => message.channel.send(`Ele é...`, {
+    files: ['https://thumbs.gfycat.com/CoordinatedWastefulBabirusa-size_restricted.gif'],
+});
+
+exports.bonk = (message) => {
+    const args = message.content.split(' ');
+    const nameBonk = args[1];
+    const author = message.author.username;
+
+    if (!nameBonk || nameBonk === '') {
+        return message.channel.send(`Me manda um nome para eu acertar com um taco`);
+    }
+
+    return message.channel.send(`${author} acertou ${nameBonk} com um taco`, {
+        files: ['https://i.pinimg.com/originals/50/6e/e2/506ee22b38ada4c5390498809fca404f.jpg'],
+    });
+}
 
 exports.evelon = (message) => {
     // Definindo as frases da Evelon

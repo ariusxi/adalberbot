@@ -22,9 +22,10 @@ module.exports = (message) => {
     const args = message.content.split(' ');
     const members = args[1].split(",");
     const quantityGroups = parseInt(args[2]);
+    const quantityMembers = parseInt(args[3]);
     
     // Calculando quantos membros vão ficar por grupo
-    const membersPerGroup = calculateMembersGroup(members.length, quantityGroups);
+    const membersPerGroup = args[3] ? quantityMembers : calculateMembersGroup(members.length, quantityGroups);
 
     if (members.length < quantityGroups) {
         return message.channel.send(`Não tenho como criar uma quantidade de grupos com um número de nomes enviados`);

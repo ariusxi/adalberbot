@@ -2,6 +2,7 @@
 
 // Libs
 const ytdl = require('ytdl-core');
+const { MessageEmbed } = require('discord.js');
 
 const skip = (message, serverQueue) => {
     if (!message.member.voice.channel) {
@@ -28,7 +29,6 @@ const stop = (message, serverQueue) => {
 
 const play = (guild, song) => {
     const serverQueue = global.queue.get(guild.id);
-    console.log(global.queue);
     if (!song) {
         serverQueue.voiceChannel.leave();
         global.queue.delete(guild.id);
@@ -44,12 +44,69 @@ const play = (guild, song) => {
         .on("error", error => console.error(error));
 
     dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
-    serverQueue.textChannel.send(`Começou a tocar: **${song.title}**`);
+
+    const embed = new MessageEmbed()
+            .setTitle(`Começou a tocar:`)
+            .setThumbnail(song.thumbnail)
+            .addFields({
+                name: 'Título',
+                value: song.title,
+            }, {
+                name: 'URL',
+                value: song.url,
+            });
+
+    serverQueue.textChannel.send(embed);
+}
+
+const queue = async (message, serverQueue) => {
+    const voiceChannel = message.member.voice.channel;
+    
+    // Verificando se o usuário está em um canal de voz
+    if (!voiceChannel) {
+        return message.channel.send('Você precisa estar em um canal para reproduzir músicas');
+    }
+
+    // Verificando as permissões atuais do canal
+    const permissions = voiceChannel.permissionsFor(message.client.user);
+    if (!permissions.has('CONNECT') || !permissions.has('SPEAK')) {
+        return message.channel.send('Eu preciso de permissões para me juntar ao canal de voz');
+    }
+
+    // Verificando se a fila de músicas contém alguma coisa
+    if (!serverQueue || !serverQueue.songs || serverQueue.songs.length === 0) {
+        return message.channel.send('A fila de músicas está vazia');
+    }
+
+    // Listar todas as músicas que tem na fila
+    serverQueue.songs.forEach((currentSong) => {
+        const embed = new MessageEmbed()
+            .setTitle(`Música adicionada a fila`)
+            .setThumbnail(currentSong.thumbnail)
+            .addFields({
+                name: 'Título',
+                value: currentSong.title,
+            }, {
+                name: 'URL',
+                value: currentSong.url,
+            }, {
+                name: 'Repetições',
+                value: currentSong.repetition,
+            }, {
+                name: 'Adicionar por',
+                value: currentSong.addedBy,
+            });
+
+        serverQueue.textChannel.send(embed);
+    });
+
+    console.log(serverQueue);
 }
 
 const execute = async (message, serverQueue) => {
     const args = message.content.split(' ');
     const videoUrl = args[1];
+    const repetition = args[2] ? args[2] : 1;
     const voiceChannel = message.member.voice.channel;
 
     // Verificando se o usuário está em um canal de voz
@@ -67,25 +124,51 @@ const execute = async (message, serverQueue) => {
     const songInformation = await ytdl.getInfo(videoUrl).catch(() => {
         return message.channel.send(`Desculpe, não foi possível reproduzir essa música`);
     });
+
     const song = ({
         title: songInformation.videoDetails.title,
+        thumbnail: songInformation.videoDetails.thumbnails[0].url,
         url: songInformation.videoDetails.video_url,
+        addedBy: message.member.user.tag,
+        repetition,
     });
 
     if (!serverQueue) {
         const queueConstruct = ({
             textChannel: message.channel,
-            voiceChannel: voiceChannel,
+            voiceChannel,
             connection: null,
             songs: [],
             volume: 5,
             playing: true,
         });
 
+        const embed = new MessageEmbed()
+            .setTitle(`Música adicionada na fila`)
+            .setThumbnail(song.thumbnail)
+            .addFields({
+                name: 'Título',
+                value: song.title,
+            }, {
+                name: 'URL',
+                value: song.url,
+            }, {
+                name: 'Repetições',
+                value: repetition,
+            },{
+                name: 'Adicionada por',
+                value: song.addedBy,
+            });
+
+        // Adicionando o aviso de que foi adicionado na fila a música
+        message.channel.send(embed);
+
         // Adicionando informações da música na fila
         global.queue.set(message.guild.id, queueConstruct);
-
-        queueConstruct.songs.push(song);
+        
+        for (let i = repetition; i > 0; i--) {
+            queueConstruct.songs.push(song);
+        }
 
         try {
             // Efetuando conexão ao chat de voz
@@ -104,4 +187,5 @@ module.exports = {
     stop,
     play,
     execute,
+    queue,
 }
